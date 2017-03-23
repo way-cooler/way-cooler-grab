@@ -7,7 +7,7 @@ use dbus::{Connection, BusType, Message, MessageItem};
 use dbus::arg::Array;
 
 use image::png::PNGEncoder;
-use image::{ColorType, load_from_memory};
+use image::{ColorType};
 
 // Bit depth of image.
 const BIT_DEPTH: u8 = 8;
@@ -23,7 +23,8 @@ fn main() {
                                      "Scrape").unwrap();
     let reply = con.send_with_reply_and_block(msg, WAIT_TIME).unwrap();
     let arr: Array<u8, _> = reply.get1().unwrap();
-    let arr = arr.collect::<Vec<u8>>();
+    let mut arr = arr.collect::<Vec<u8>>();
+    convert_to_png(&mut arr);
     let out = File::create("out.png").unwrap();
     let encoder = PNGEncoder::new(out);
     encoder.encode(arr.as_slice(), res.0, res.1, ColorType::RGBA(BIT_DEPTH))
@@ -86,6 +87,18 @@ fn resolution(con: &Connection) -> (u32, u32) {
     }
 }*/
 
+
+fn convert_to_png(buffer: &mut Vec<u8>) {
+    let mut length = buffer.len();
+    length -= length % 4;
+    let mut i = 0;
+    while i < length {
+        let tmp = buffer[i + 2];
+        buffer[i + 2] = buffer[i + 3];
+        buffer[i + 3] = tmp;
+        i += 4;
+    }
+}
 
 fn rgba_conversion(num: u8, third_num: u32) -> u8 {
     let big_num = num as u32;
