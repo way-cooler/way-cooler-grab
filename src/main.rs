@@ -94,8 +94,3 @@ fn convert_to_png(buffer: &mut Vec<u8>) {
         i += 4;
     }
 }
-
-fn rgba_conversion(num: u8, third_num: u32) -> u8 {
-    let big_num = num as u32;
-    ((big_num * third_num) / 255) as u8
-}
