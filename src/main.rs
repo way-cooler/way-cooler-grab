@@ -69,18 +69,16 @@ fn convert_to_png(buffer: &mut Vec<u8>) {
     length -= length % 4;
     let mut i = 0;
     while i < length {
-        let tmp = buffer[i + 2];
-        buffer[i + 2] = buffer[i + 3];
-        buffer[i + 3] = tmp;
-
-
-        let tmp = buffer[i + 0];
-        buffer[i + 0] = buffer[i + 2];
-        buffer[i + 2] = tmp;
-
-        let tmp = buffer[i + 2];
-        buffer[i + 2] = buffer[i + 1];
-        buffer[i + 1] = tmp;
+        // a b c d -> d a b c
+        buffer[i + 2] ^= buffer[i + 3];
+        buffer[i + 3] = buffer[i + 2] ^ buffer[i + 3];
+        buffer[i + 2] ^= buffer[i + 3];
+        buffer[i] ^= buffer[i + 2];
+        buffer[i + 2] = buffer[i] ^ buffer[i + 2];
+        buffer[i] ^= buffer[i + 2];
+        buffer[i + 2] ^= buffer[i + 1];
+        buffer[i + 1] = buffer[i + 1] ^ buffer[i + 2];
+        buffer[i + 2] ^= buffer[i + 1];
         i += 4;
     }
 }
