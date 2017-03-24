@@ -10,7 +10,8 @@ use dbus::{Connection, BusType, Message, MessageItem};
 use dbus::arg::Array;
 
 use image::png::PNGEncoder;
-use image::{ColorType};
+use image::{ColorType, DynamicImage, ImageFormat, ImageBuffer,
+            load_from_memory};
 
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 // Bit depth of image.
@@ -38,6 +39,8 @@ fn main() {
         return
     }
     let output_name = matches.value_of("Output File").unwrap_or("screenshot.png");
+    let mut out = File::create(output_name)
+        .expect("Could not create output file");
 
     let con = Connection::get_private(BusType::Session)
         .expect("Could not connect to D-Bus");
@@ -53,11 +56,16 @@ fn main() {
         .expect("Way Cooler returned an unexpected value");
     let mut arr = arr.collect::<Vec<u8>>();
     convert_to_png(&mut arr);
-    let out = File::create(output_name)
-        .expect("Could not write out to file");
-    let encoder = PNGEncoder::new(out);
-    encoder.encode(arr.as_slice(), res.0, res.1, ColorType::RGBA(BIT_DEPTH))
-        .expect("Could not encode image to PNG")
+    let mut png_buf = Vec::with_capacity(4 * (res.0 * res.1) as usize);
+    {
+        let encoder = PNGEncoder::new(&mut png_buf);
+        encoder.encode(arr.as_slice(), res.0, res.1, ColorType::RGBA(BIT_DEPTH))
+            .expect("Could not encode image to PNG");
+    }
+    let mut image = load_from_memory(png_buf.as_slice())
+        .expect("Could not read encoded image");
+    image = image.flipv();
+    image.save(&mut out, ImageFormat::PNG);
 }
 
 fn resolution(con: &Connection) -> (u32, u32) {
