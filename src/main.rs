@@ -10,8 +10,7 @@ use dbus::{Connection, BusType, Message, MessageItem};
 use dbus::arg::Array;
 
 use image::png::PNGEncoder;
-use image::{ColorType, DynamicImage, ImageFormat, ImageBuffer,
-            load_from_memory};
+use image::{ColorType, ImageFormat, load_from_memory};
 
 const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 // Bit depth of image.
@@ -65,7 +64,8 @@ fn main() {
     let mut image = load_from_memory(png_buf.as_slice())
         .expect("Could not read encoded image");
     image = image.flipv();
-    image.save(&mut out, ImageFormat::PNG);
+    image.save(&mut out, ImageFormat::PNG)
+        .expect("Could not save image to file");
 }
 
 fn resolution(con: &Connection) -> (u32, u32) {
