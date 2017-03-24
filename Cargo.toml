@@ -2,6 +2,7 @@
 name = "wc-grab"
 description = "Screen shot taker for Way Cooler"
 version = "0.1.0"
+license = "MIT"
 repository = "https://github.com/way-cooler/way-cooler-grab/"
 keywords = ["Wayland"]
 authors = ["Timidger <APragmaticPlace@gmail.com>"]
