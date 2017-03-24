@@ -9,3 +9,4 @@ authors = ["Timidger <APragmaticPlace@gmail.com>"]
 [dependencies]
 dbus = "0.5.2"
 image = "^0.12.3"
+clap = "2.22.0"

@@ -1,7 +1,10 @@
+extern crate clap;
 extern crate dbus;
 extern crate image;
 
 use std::fs::File;
+
+use clap::{Arg, App};
 
 use dbus::{Connection, BusType, Message, MessageItem};
 use dbus::arg::Array;
@@ -9,12 +12,33 @@ use dbus::arg::Array;
 use image::png::PNGEncoder;
 use image::{ColorType};
 
+const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 // Bit depth of image.
 const BIT_DEPTH: u8 = 8;
 // Time to wait for D-Bus to respond
 const WAIT_TIME: i32 = 2000;
 
 fn main() {
+    let matches = App::new("wc-grab")
+        .version(VERSION)
+        .author("Timidger <APragmaticPlace@gmail.com>")
+        .arg(Arg::with_name("Output File")
+             .short("o")
+             .long("output")
+             .value_name("Output File")
+             .help("Sets an custom output file to write to. Defauts to \"screenshot.png\"")
+             .takes_value(true))
+        .arg(Arg::with_name("Version")
+            .short("v")
+            .long("version")
+            .help("Displays the version number of the program"))
+        .get_matches();
+    if matches.is_present("Version") {
+        println!("{}", VERSION);
+        return
+    }
+    let output_name = matches.value_of("Output File").unwrap_or("screenshot.png");
+
     let con = Connection::get_private(BusType::Session)
         .expect("Could not connect to D-Bus");
     let res = resolution(&con);
@@ -29,7 +53,7 @@ fn main() {
         .expect("Way Cooler returned an unexpected value");
     let mut arr = arr.collect::<Vec<u8>>();
     convert_to_png(&mut arr);
-    let out = File::create("out.png")
+    let out = File::create(output_name)
         .expect("Could not write out to file");
     let encoder = PNGEncoder::new(out);
     encoder.encode(arr.as_slice(), res.0, res.1, ColorType::RGBA(BIT_DEPTH))
