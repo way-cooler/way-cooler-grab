@@ -15,28 +15,35 @@ const BIT_DEPTH: u8 = 8;
 const WAIT_TIME: i32 = 2000;
 
 fn main() {
-    let con = Connection::get_private(BusType::Session).unwrap();
+    let con = Connection::get_private(BusType::Session)
+        .expect("Could not connect to D-Bus");
     let res = resolution(&con);
     let msg = Message::new_method_call("org.way-cooler",
-                                     "/org/way_cooler/Screen",
-                                     "org.way_cooler.Screen",
-                                     "Scrape").unwrap();
-    let reply = con.send_with_reply_and_block(msg, WAIT_TIME).unwrap();
-    let arr: Array<u8, _> = reply.get1().unwrap();
+                                       "/org/way_cooler/Screen",
+                                       "org.way_cooler.Screen",
+                                       "Scrape")
+        .expect("Could not construct message -- is Way Cooler running?");
+    let reply = con.send_with_reply_and_block(msg, WAIT_TIME)
+        .expect("Could not talk to Way Cooler -- is Way Cooler running?");
+    let arr: Array<u8, _> = reply.get1()
+        .expect("Way Cooler returned an unexpected value");
     let mut arr = arr.collect::<Vec<u8>>();
     convert_to_png(&mut arr);
-    let out = File::create("out.png").unwrap();
+    let out = File::create("out.png")
+        .expect("Could not write out to file");
     let encoder = PNGEncoder::new(out);
     encoder.encode(arr.as_slice(), res.0, res.1, ColorType::RGBA(BIT_DEPTH))
-        .unwrap()
+        .expect("Could not encode image to PNG")
 }
 
 fn resolution(con: &Connection) -> (u32, u32) {
     let screens_msg = Message::new_method_call("org.way-cooler",
                                                "/org/way_cooler/Screen",
                                                "org.way_cooler.Screen",
-                                               "List").unwrap();
-    let screen_r = con.send_with_reply_and_block(screens_msg, WAIT_TIME).unwrap();
+                                               "List")
+    .expect("Could not construct message -- is Way Cooler running?");
+    let screen_r = con.send_with_reply_and_block(screens_msg, WAIT_TIME)
+        .expect("Could not talk to Way Cooler -- is Way Cooler running?");
     let screen_r = &screen_r.get_items()[0];
     let output_id = match screen_r {
         &MessageItem::Array(ref items, _) => {
@@ -50,15 +57,20 @@ fn resolution(con: &Connection) -> (u32, u32) {
     let res_msg = Message::new_method_call("org.way-cooler",
                                            "/org/way_cooler/Screen",
                                            "org.way_cooler.Screen",
-                                           "Resolution").unwrap()
+                                           "Resolution")
+        .expect("Could not construct message -- is Way Cooler running?")
         .append(MessageItem::Str(output_id));
-    let reply: MessageItem = con.send_with_reply_and_block(res_msg, WAIT_TIME).unwrap()
-        .get1().unwrap();
+    let reply: MessageItem = con.send_with_reply_and_block(res_msg, WAIT_TIME)
+        .expect("Could not talk to Way Cooler -- is Way Cooler running?")
+        .get1()
+        .expect("Way Cooler returned an unexpected value");
     match reply {
         MessageItem::Struct(items) => {
             let (width, height) = (&items[0], &items[1]);
             println!("{:?}, {:?}", width, height);
-            (width.inner::<u32>().unwrap(), height.inner::<u32>().unwrap())
+            (width.inner::<u32>()
+             .expect("Way Cooler returned an unexpected value"),
+             height.inner::<u32>().expect("Way Cooler returned an unexpected value"))
         },
         _ => panic!("Colud not get resolution of screen")
     }
