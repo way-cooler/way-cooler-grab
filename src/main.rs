@@ -64,30 +64,6 @@ fn resolution(con: &Connection) -> (u32, u32) {
     }
 }
 
-// TODO
-// I think I need to reorder the pixels before I continue...
-// Because that's why it looks all blue and shit.
-// flipping it _should_ be easy after that....
-
-
-// ACTUALLY do the conversion, but into some buffer not a file.
-// then go through, manually switch the bits (now in the nice u32 format I expect).
-// and then write to a file.
-/*fn convert(pixels: &mut [u8]) {
-    let length = pixels.len();
-    let mut i = 0;
-    while i < length {
-        let alpha = pixel[i + 3] as u32;
-        pixels[i] / rgba_conversion(pixels[i], alpha);
-        pixels[i + 1] / rgba_conversion(pixels[i], alpha);
-        pixels[i + 2] / rgba_conversion(pixels[i], alpha);
-        let tmp = pixels[i + 2];
-        pixels[i + 2] = pixels[0];
-        pixels[0] = tmp;
-    }
-}*/
-
-
 fn convert_to_png(buffer: &mut Vec<u8>) {
     let mut length = buffer.len();
     length -= length % 4;
@@ -96,6 +72,15 @@ fn convert_to_png(buffer: &mut Vec<u8>) {
         let tmp = buffer[i + 2];
         buffer[i + 2] = buffer[i + 3];
         buffer[i + 3] = tmp;
+
+
+        let tmp = buffer[i + 0];
+        buffer[i + 0] = buffer[i + 2];
+        buffer[i + 2] = tmp;
+
+        let tmp = buffer[i + 2];
+        buffer[i + 2] = buffer[i + 1];
+        buffer[i + 1] = tmp;
         i += 4;
     }
 }
