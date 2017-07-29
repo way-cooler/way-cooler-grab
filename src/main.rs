@@ -72,17 +72,14 @@ fn resolution(con: &Connection) -> (u32, u32) {
     let screens_msg = Message::new_method_call("org.way-cooler",
                                                "/org/way_cooler/Screen",
                                                "org.way_cooler.Screen",
-                                               "List")
+                                               "ActiveScreen")
     .expect("Could not construct message -- is Way Cooler running?");
     let screen_r = con.send_with_reply_and_block(screens_msg, WAIT_TIME)
         .expect("Could not talk to Way Cooler -- is Way Cooler running?");
     let screen_r = &screen_r.get_items()[0];
     let output_id = match screen_r {
-        &MessageItem::Array(ref items, _) => {
-            match items[0] {
-                MessageItem::Str(ref string) => string.clone(),
-                _ => panic!("Array didn't contain output id")
-            }
+        &MessageItem::Str(ref string) => {
+            string.clone()
         }
         _ => panic!("Wrong type from Screen")
     };
