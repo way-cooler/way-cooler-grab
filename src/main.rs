@@ -48,7 +48,9 @@ fn main() {
                                        "/org/way_cooler/Screen",
                                        "org.way_cooler.Screen",
                                        "Scrape")
-        .expect("Could not construct message -- is Way Cooler running?");
+        .expect("Could not construct message -- is Way Cooler running?")
+        // 0 grabs the focused output
+        .append(MessageItem::UInt32(0u32));
     let reply = con.send_with_reply_and_block(msg, WAIT_TIME)
         .expect("Could not talk to Way Cooler -- is Way Cooler running?");
     let arr: Array<u8, _> = reply.get1()
