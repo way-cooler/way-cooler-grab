@@ -103,7 +103,7 @@ fn resolution(con: &Connection) -> (u32, u32) {
              .expect("Way Cooler returned an unexpected value"),
              height.inner::<u32>().expect("Way Cooler returned an unexpected value"))
         },
-        _ => panic!("Colud not get resolution of screen")
+        _ => panic!("Could not get resolution of screen")
     }
 }
 
